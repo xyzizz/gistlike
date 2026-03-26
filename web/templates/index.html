@@ -1,0 +1,85 @@
+{{define "index_content"}}
+<section class="home-hero">
+  <div class="home-hero__inner">
+    <div class="home-hero__content">
+      <p class="eyebrow">GistLike</p>
+      <h1>Capture the useful fragment before it turns into a full repository.</h1>
+      <p class="hero-copy">Store shell commands, SQL checks, patches, and small experiments in a format that stays readable the moment someone opens the link.</p>
+
+      <div class="hero-actions">
+        <a class="button button-primary" href="/snippets/new">Create a snippet</a>
+        <a class="button button-secondary button-secondary--inverted" href="#public-feed">Browse the public feed</a>
+      </div>
+    </div>
+
+    <div class="home-hero__support">
+      <form class="search-form search-form--hero" action="/" method="GET">
+        <label class="sr-only" for="search">Search snippets</label>
+        <input id="search" name="q" type="search" placeholder="Search title or description" value="{{.SearchQuery}}">
+        <button class="button button-primary" type="submit">Search</button>
+      </form>
+
+      <p class="search-state">
+        {{if .SearchQuery}}
+        Showing results for "{{.SearchQuery}}".
+        {{else}}
+        Search the public archive by title or description.
+        {{end}}
+      </p>
+
+      <ul class="hero-list">
+        <li>Create with title, description, language, and visibility in one pass.</li>
+        <li>Keep unfinished work unlisted until it is ready to be shared.</li>
+        <li>Open each snippet on a quiet reading surface built for code first.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="public-feed" class="feed-section">
+  <div class="feed-shell">
+    <div class="section-heading section-heading--feed">
+      <div>
+        <p class="eyebrow">{{if .SearchQuery}}Search results{{else}}Latest public snippets{{end}}</p>
+        <h2>{{if .SearchQuery}}Matches for "{{.SearchQuery}}"{{else}}Newest public snippets, ordered by creation time.{{end}}</h2>
+      </div>
+      <p class="feed-meta">{{len .Snippets}} snippet{{if ne (len .Snippets) 1}}s{{end}}</p>
+    </div>
+
+    {{if .Snippets}}
+    <div class="snippet-feed">
+      {{range .Snippets}}
+      <article class="snippet-row">
+        <div class="snippet-row__primary">
+          <div class="snippet-row__topline">
+            <span class="badge">{{.Language}}</span>
+            <span class="row-visibility">{{if .IsPublic}}Public{{else}}Private{{end}}</span>
+          </div>
+
+          <a class="snippet-row__title" href="/snippets/{{.ID}}">{{.Title}}</a>
+
+          {{if .Description}}
+          <p class="snippet-row__description">{{truncate .Description 150}}</p>
+          {{else}}
+          <p class="snippet-row__description muted">No description provided.</p>
+          {{end}}
+        </div>
+
+        <div class="snippet-row__meta">
+          <span class="row-label">Updated</span>
+          <strong>{{formatTime .UpdatedAt}}</strong>
+        </div>
+      </article>
+      {{end}}
+    </div>
+    {{else}}
+    <section class="empty-state">
+      <p class="eyebrow">Nothing to show yet</p>
+      <h2>No snippets found</h2>
+      <p>Try a different search keyword, or create the first snippet for this workspace.</p>
+      <a class="button button-primary" href="/snippets/new">Create snippet</a>
+    </section>
+    {{end}}
+  </div>
+</section>
+{{end}}

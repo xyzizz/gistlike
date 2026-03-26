@@ -1,0 +1,41 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.PageTitle}} · {{.AppName}}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="page page-{{.PageTemplate}}">
+  <header class="site-header-wrap">
+    <div class="site-header">
+      <div class="site-brand">
+        <a class="brand" href="/">{{.AppName}}</a>
+        <p class="site-tagline">Readable code fragments without the repo overhead.</p>
+      </div>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-link" href="/">Public feed</a>
+        <a class="button button-primary" href="/snippets/new">New snippet</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    {{if eq .PageTemplate "index_content"}}
+      {{template "index_content" .}}
+    {{else if eq .PageTemplate "snippet_form_content"}}
+      {{template "snippet_form_content" .}}
+    {{else if eq .PageTemplate "snippet_detail_content"}}
+      {{template "snippet_detail_content" .}}
+    {{else if eq .PageTemplate "error_content"}}
+      {{template "error_content" .}}
+    {{end}}
+  </main>
+
+  {{range .Scripts}}
+  <script src="{{.}}" defer></script>
+  {{end}}
+</body>
+</html>
+{{end}}

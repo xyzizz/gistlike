@@ -1,0 +1,63 @@
+{{define "snippet_detail_content"}}
+<section class="detail-page">
+  <div class="detail-shell">
+    <div class="detail-topbar">
+      <a class="inline-link" href="/">Back to public feed</a>
+      <div class="detail-actions">
+        <a class="button button-secondary" href="/snippets/{{.Snippet.ID}}/raw" target="_blank" rel="noreferrer">Raw</a>
+        <a class="button button-secondary" href="/snippets/{{.Snippet.ID}}/edit">Edit</a>
+        <button class="button button-danger" type="button" data-delete-snippet data-snippet-id="{{.Snippet.ID}}">Delete</button>
+      </div>
+    </div>
+
+    <header class="detail-head">
+      <div class="detail-badges">
+        <span class="badge">{{.Snippet.Language}}</span>
+        <span class="badge badge-muted">{{if .Snippet.IsPublic}}Public{{else}}Private / unlisted{{end}}</span>
+      </div>
+      <h1>{{.Snippet.Title}}</h1>
+      {{if .Snippet.Description}}
+      <p class="detail-description">{{.Snippet.Description}}</p>
+      {{else}}
+      <p class="detail-description detail-description--empty">No description was added for this snippet.</p>
+      {{end}}
+    </header>
+
+    <div class="detail-layout">
+      <section class="code-panel">
+        <div class="code-panel-header">
+          <span>Source</span>
+          <span class="code-panel__language">{{.Snippet.Language}}</span>
+        </div>
+        <pre><code>{{.Snippet.Content}}</code></pre>
+      </section>
+
+      <aside class="detail-sidebar">
+        <section class="meta-block">
+          <p class="meta-block__label">Snapshot</p>
+          <dl class="detail-meta">
+            <div>
+              <dt>Created</dt>
+              <dd>{{formatTime .Snippet.CreatedAt}}</dd>
+            </div>
+            <div>
+              <dt>Updated</dt>
+              <dd>{{formatTime .Snippet.UpdatedAt}}</dd>
+            </div>
+            <div>
+              <dt>Visibility</dt>
+              <dd>{{if .Snippet.IsPublic}}Public{{else}}Private / unlisted{{end}}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="meta-block">
+          <p class="meta-block__label">Share link</p>
+          <a class="share-link" href="/snippets/{{.Snippet.ID}}">/snippets/{{.Snippet.ID}}</a>
+          <a class="share-link share-link--secondary" href="/snippets/{{.Snippet.ID}}/raw" target="_blank" rel="noreferrer">/snippets/{{.Snippet.ID}}/raw</a>
+        </section>
+      </aside>
+    </div>
+  </div>
+</section>
+{{end}}

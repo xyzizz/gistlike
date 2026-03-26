@@ -1,0 +1,13 @@
+{{define "error_content"}}
+<section class="error-page">
+  <div class="error-shell">
+    <p class="eyebrow">Error {{.ErrorCode}}</p>
+    <h1>{{.ErrorTitle}}</h1>
+    <p class="error-copy">{{.ErrorMessage}}</p>
+    <div class="error-actions">
+      <a class="button button-primary" href="/">Go back home</a>
+      <a class="button button-secondary" href="/snippets/new">Create a snippet</a>
+    </div>
+  </div>
+</section>
+{{end}}

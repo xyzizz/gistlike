@@ -1,0 +1,87 @@
+{{define "snippet_form_content"}}
+<section class="editor-page">
+  <div class="editor-shell">
+    <header class="editor-header">
+      <div>
+        <p class="eyebrow">{{if eq .FormMode "edit"}}Edit snippet{{else}}New snippet{{end}}</p>
+        <h1>{{if eq .FormMode "edit"}}Refine the snippet and publish the cleaner version.{{else}}Write the snippet once, share it cleanly.{{end}}</h1>
+        <p class="section-copy">Keep the title short, add just enough context, and let the code block carry the detail.</p>
+      </div>
+
+      <div class="editor-header__actions">
+        {{if .Snippet}}
+        <a class="button button-secondary" href="/snippets/{{.Snippet.ID}}">Back to detail</a>
+        {{else}}
+        <a class="button button-secondary" href="/">Back to feed</a>
+        {{end}}
+      </div>
+    </header>
+
+    <div class="editor-layout">
+      <form class="snippet-form" data-snippet-form data-mode="{{.FormMode}}" data-snippet-id="{{if .Snippet}}{{.Snippet.ID}}{{end}}">
+        <div class="form-error-banner" data-form-error hidden></div>
+
+        <div class="form-grid">
+          <div class="form-row form-row--span">
+            <label for="title">Title</label>
+            <input id="title" name="title" type="text" maxlength="120" value="{{if .Snippet}}{{.Snippet.Title}}{{end}}" placeholder="Example: Gin middleware example" required>
+            <p class="field-error" data-field-error="title"></p>
+          </div>
+
+          <div class="form-row">
+            <label for="language">Language</label>
+            <select id="language" name="language" required>
+              {{range .Languages}}
+              <option value="{{.}}" {{if and $.Snippet (eq $.Snippet.Language .)}}selected{{else if and (not $.Snippet) (eq . "plaintext")}}selected{{end}}>{{.}}</option>
+              {{end}}
+            </select>
+            <p class="field-error" data-field-error="language"></p>
+          </div>
+
+          <div class="form-row">
+            <span class="field-label">Visibility</span>
+            <label class="checkbox-field" for="is_public">
+              <input id="is_public" name="is_public" type="checkbox" {{if .Snippet}}{{if .Snippet.IsPublic}}checked{{end}}{{else}}checked{{end}}>
+              <span>Visible on the public feed</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="4" maxlength="280" placeholder="Optional context for people opening this snippet.">{{if .Snippet}}{{.Snippet.Description}}{{end}}</textarea>
+          <p class="field-error" data-field-error="description"></p>
+        </div>
+
+        <div class="form-row">
+          <label for="content">Code content</label>
+          <textarea id="content" name="content" rows="18" class="code-input" spellcheck="false" placeholder="Paste your code here..." required>{{if .Snippet}}{{.Snippet.Content}}{{end}}</textarea>
+          <p class="field-error" data-field-error="content"></p>
+        </div>
+
+        <div class="form-actions">
+          <button class="button button-primary" type="submit">{{if eq .FormMode "edit"}}Save changes{{else}}Create snippet{{end}}</button>
+          <a class="button button-secondary" href="{{if .Snippet}}/snippets/{{.Snippet.ID}}{{else}}/{{end}}">Cancel</a>
+        </div>
+      </form>
+
+      <aside class="editor-sidebar">
+        <section class="editor-note">
+          <p class="editor-note__label">Visibility</p>
+          <h2>Public vs. unlisted</h2>
+          <p>Public snippets appear on the home feed and search results. Private snippets stay off the public list, but direct links still work in this MVP because authentication is not implemented yet.</p>
+        </section>
+
+        <section class="editor-note">
+          <p class="editor-note__label">Supported languages</p>
+          <ul class="language-list">
+            {{range .Languages}}
+            <li>{{.}}</li>
+            {{end}}
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </div>
+</section>
+{{end}}
