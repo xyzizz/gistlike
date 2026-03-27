@@ -2,84 +2,70 @@
 <section class="home-hero">
   <div class="home-hero__inner">
     <div class="home-hero__content">
-      <p class="eyebrow">GistLike</p>
-      <h1>Capture the useful fragment before it turns into a full repository.</h1>
-      <p class="hero-copy">Store shell commands, SQL checks, patches, and small experiments in a format that stays readable the moment someone opens the link.</p>
-
-      <div class="hero-actions">
-        <a class="button button-primary" href="/snippets/new">Create a snippet</a>
-        <a class="button button-secondary button-secondary--inverted" href="#public-feed">Browse the public feed</a>
-      </div>
+      <p class="hero-brand">GistLike</p>
+      <h1>Keep the fragment that matters.</h1>
+      <p class="hero-copy">Store commands, SQL checks, patches, and small code notes on a page that stays calm to read and easy to share.</p>
     </div>
 
-    <div class="home-hero__support">
-      <form class="search-form search-form--hero" action="/" method="GET">
-        <label class="sr-only" for="search">Search snippets</label>
-        <input id="search" name="q" type="search" placeholder="Search title or description" value="{{.SearchQuery}}">
-        <button class="button button-primary" type="submit">Search</button>
-      </form>
-
-      <p class="search-state">
-        {{if .SearchQuery}}
-        Showing results for "{{.SearchQuery}}".
-        {{else}}
-        Search the public archive by title or description.
-        {{end}}
-      </p>
-
-      <ul class="hero-list">
-        <li>Create with title, description, language, and visibility in one pass.</li>
-        <li>Keep unfinished work unlisted until it is ready to be shared.</li>
-        <li>Open each snippet on a quiet reading surface built for code first.</li>
-      </ul>
+    <div class="home-hero__actions">
+      <a class="button button-primary" href="/snippets/new">Create a snippet</a>
+      <a class="button button-secondary" href="#public-feed">Browse the archive</a>
     </div>
   </div>
 </section>
 
 <section id="public-feed" class="feed-section">
   <div class="feed-shell">
-    <div class="section-heading section-heading--feed">
-      <div>
-        <p class="eyebrow">{{if .SearchQuery}}Search results{{else}}Latest public snippets{{end}}</p>
-        <h2>{{if .SearchQuery}}Matches for "{{.SearchQuery}}"{{else}}Newest public snippets, ordered by creation time.{{end}}</h2>
-      </div>
-      <p class="feed-meta">{{len .Snippets}} snippet{{if ne (len .Snippets) 1}}s{{end}}</p>
-    </div>
-
-    {{if .Snippets}}
-    <div class="snippet-feed">
-      {{range .Snippets}}
-      <article class="snippet-row">
-        <div class="snippet-row__primary">
-          <div class="snippet-row__topline">
-            <span class="badge">{{.Language}}</span>
-            <span class="row-visibility">{{if .IsPublic}}Public{{else}}Private{{end}}</span>
+    <section class="feed-panel">
+      <div class="feed-toolbar">
+        <div class="section-heading section-heading--feed">
+          <div>
+            <p class="eyebrow">{{if .SearchQuery}}Search{{else}}Public archive{{end}}</p>
+            <h2>{{if .SearchQuery}}Results for "{{.SearchQuery}}"{{else}}Latest snippets{{end}}</h2>
           </div>
+          <p class="feed-meta">
+            {{len .Snippets}} snippet{{if ne (len .Snippets) 1}}s{{end}}{{if .SearchQuery}} matching your search{{else}} in the public archive{{end}}
+          </p>
+        </div>
 
+        <form class="search-form search-form--inline" action="/" method="GET">
+          <label class="sr-only" for="search">Search snippets</label>
+          <input id="search" name="q" type="search" placeholder="Search title or description" value="{{.SearchQuery}}">
+          <div class="search-form__actions">
+            <button class="button button-secondary" type="submit">Search</button>
+            {{if .SearchQuery}}
+            <a class="inline-link inline-link--quiet" href="/">Clear</a>
+            {{end}}
+          </div>
+        </form>
+      </div>
+
+      {{if .Snippets}}
+      <div class="snippet-feed">
+        {{range .Snippets}}
+        <article class="snippet-row">
           <a class="snippet-row__title" href="/snippets/{{.ID}}">{{.Title}}</a>
 
           {{if .Description}}
-          <p class="snippet-row__description">{{truncate .Description 150}}</p>
-          {{else}}
-          <p class="snippet-row__description muted">No description provided.</p>
+          <p class="snippet-row__description">{{truncate .Description 120}}</p>
           {{end}}
-        </div>
 
-        <div class="snippet-row__meta">
-          <span class="row-label">Updated</span>
-          <strong>{{formatTime .UpdatedAt}}</strong>
-        </div>
-      </article>
+          <div class="snippet-row__meta">
+            <span class="badge">{{.Language}}</span>
+            <span class="row-timestamp">Updated {{formatTime .UpdatedAt}}</span>
+          </div>
+        </article>
+        {{end}}
+      </div>
+      {{else}}
+      <section class="empty-state">
+        <p class="eyebrow">{{if .SearchQuery}}No matches{{else}}No snippets yet{{end}}</p>
+        <h2>{{if .SearchQuery}}No snippets found{{else}}Start the archive with one good snippet{{end}}</h2>
+        <p>{{if .SearchQuery}}Try a shorter keyword or clear the search.{{else}}Create a clean, shareable fragment for this workspace and let the archive begin there.{{end}}</p>
+        <a class="button button-primary" href="{{if .SearchQuery}}/{{else}}/snippets/new{{end}}">{{if .SearchQuery}}Back to archive{{else}}Create a snippet{{end}}</a>
+      </section>
       {{end}}
-    </div>
-    {{else}}
-    <section class="empty-state">
-      <p class="eyebrow">Nothing to show yet</p>
-      <h2>No snippets found</h2>
-      <p>Try a different search keyword, or create the first snippet for this workspace.</p>
-      <a class="button button-primary" href="/snippets/new">Create snippet</a>
     </section>
-    {{end}}
   </div>
 </section>
 {{end}}

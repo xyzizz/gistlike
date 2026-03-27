@@ -4,8 +4,8 @@
     <header class="editor-header">
       <div>
         <p class="eyebrow">{{if eq .FormMode "edit"}}Edit snippet{{else}}New snippet{{end}}</p>
-        <h1>{{if eq .FormMode "edit"}}Refine the snippet and publish the cleaner version.{{else}}Write the snippet once, share it cleanly.{{end}}</h1>
-        <p class="section-copy">Keep the title short, add just enough context, and let the code block carry the detail.</p>
+        <h1>{{if eq .FormMode "edit"}}Edit snippet{{else}}Create a new snippet{{end}}</h1>
+        <p class="section-copy">Add a title, choose a language, and paste the code you want to keep readable.</p>
       </div>
 
       <div class="editor-header__actions">
@@ -69,7 +69,7 @@
         <section class="editor-note">
           <p class="editor-note__label">Visibility</p>
           <h2>Public vs. unlisted</h2>
-          <p>Public snippets appear on the home feed and search results. Private snippets stay off the public list, but direct links still work in this MVP because authentication is not implemented yet.</p>
+          <p>Public snippets appear in the feed and search results. Unlisted snippets stay off the feed, but direct links still work in this MVP.</p>
         </section>
 
         <section class="editor-note">

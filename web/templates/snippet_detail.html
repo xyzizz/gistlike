@@ -2,7 +2,7 @@
 <section class="detail-page">
   <div class="detail-shell">
     <div class="detail-topbar">
-      <a class="inline-link" href="/">Back to public feed</a>
+      <a class="inline-link" href="/">Back to feed</a>
       <div class="detail-actions">
         <a class="button button-secondary" href="/snippets/{{.Snippet.ID}}/raw" target="_blank" rel="noreferrer">Raw</a>
         <a class="button button-secondary" href="/snippets/{{.Snippet.ID}}/edit">Edit</a>
@@ -19,7 +19,7 @@
       {{if .Snippet.Description}}
       <p class="detail-description">{{.Snippet.Description}}</p>
       {{else}}
-      <p class="detail-description detail-description--empty">No description was added for this snippet.</p>
+      <p class="detail-description detail-description--empty">No description.</p>
       {{end}}
     </header>
 

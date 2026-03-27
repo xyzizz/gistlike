@@ -10,12 +10,11 @@
 <body class="page page-{{.PageTemplate}}">
   <header class="site-header-wrap">
     <div class="site-header">
-      <div class="site-brand">
-        <a class="brand" href="/">{{.AppName}}</a>
-        <p class="site-tagline">Readable code fragments without the repo overhead.</p>
-      </div>
+      <a class="brand" href="/">{{.AppName}}</a>
       <nav class="site-nav" aria-label="Primary">
+        {{if ne .PageTemplate "index_content"}}
         <a class="site-link" href="/">Public feed</a>
+        {{end}}
         <a class="button button-primary" href="/snippets/new">New snippet</a>
       </nav>
     </div>
