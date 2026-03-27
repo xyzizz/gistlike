@@ -1,4 +1,14 @@
 gist.xyzizz.xyz {
     encode zstd gzip
-    reverse_proxy 127.0.0.1:8080
+
+    @raw_head {
+        method HEAD
+        path */raw/*
+    }
+
+    reverse_proxy @raw_head 127.0.0.1:6157 {
+        method GET
+    }
+
+    reverse_proxy 127.0.0.1:6157
 }
