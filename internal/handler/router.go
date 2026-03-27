@@ -20,6 +20,7 @@ func SetupRouter(cfg config.Config, snippetService *service.SnippetService) (*gi
 
 	pageHandler := NewPageHandler(cfg.AppName, snippetService)
 	apiHandler := NewAPIHandler(snippetService)
+	healthHandler := NewHealthHandler()
 
 	router.Use(gin.CustomRecovery(func(c *gin.Context, recovered any) {
 		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
@@ -38,6 +39,8 @@ func SetupRouter(cfg config.Config, snippetService *service.SnippetService) (*gi
 
 	router.Static("/static", "web/static")
 
+	router.GET("/healthz", healthHandler.Healthz)
+	router.HEAD("/healthz", healthHandler.Healthz)
 	router.GET("/", pageHandler.Home)
 	router.HEAD("/", pageHandler.Home)
 	router.GET("/snippets/new", pageHandler.NewSnippet)

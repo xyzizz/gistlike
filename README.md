@@ -1,285 +1,208 @@
 # GistLike
 
-GistLike is a small MVP web service for creating, browsing, editing, deleting, and searching code snippets. It uses Go, Gin, HTML templates, SQLite, and a lightweight repository-service-handler structure so the app stays easy to extend.
+GistLike 是一个轻量的代码片段分享服务，支持创建、浏览、编辑、删除和搜索 snippet。项目使用 Go、Gin、HTML 模板和 SQLite 实现，适合个人项目、内部工具或单机部署场景。
 
-## Features
+## 功能概览
 
-- Create snippets with title, description, language, content, and public/private visibility
-- Browse public snippets ordered by newest creation time
-- View snippet detail pages with readable code blocks
-- Open a raw text view for any snippet, similar to a Gist raw link
-- Edit and delete snippets
-- Search public snippets by title or description
-- Friendly 404 and 500 pages
-- JSON API for CRUD operations
-- Docker and docker-compose support
+- 创建 snippet，支持标题、描述、语言、代码内容和公开性设置
+- 浏览公开 snippet 列表，并按创建时间倒序展示
+- 查看详情页与原始文本页
+- 编辑和删除 snippet
+- 按标题或描述搜索公开 snippet
+- 提供页面路由和 JSON API
+- 支持 Docker 单机部署
 
-## Tech choices
+## 重要说明
 
-- **Gin** keeps routing and middleware simple without over-abstracting the app
-- **database/sql + modernc SQLite driver** keeps the data layer light while preserving a clean path toward PostgreSQL later
-- **Repository -> Service -> Handler** keeps HTTP, business logic, and persistence responsibilities separated
-- **html/template + native JS** keeps the frontend simple, fast, and easy to evolve
+- 所谓“私有 snippet”当前只是 `unlisted`，不是鉴权保护。只要知道链接，仍然可以访问。
+- 当前存储使用 SQLite，适合单节点部署，不适合多节点水平扩展。
 
-## Project structure
+## 技术栈
+
+- `Go + Gin`
+- `html/template + 原生 JavaScript`
+- `SQLite`，驱动为 `modernc.org/sqlite`
+- `Repository -> Service -> Handler` 分层结构
+
+## 目录结构
 
 ```text
 .
-├── cmd/
-│   └── server/
-│       └── main.go
+├── cmd/server/               # 程序入口
 ├── internal/
-│   ├── config/
-│   │   └── config.go
-│   ├── handler/
-│   │   ├── api_handler.go
-│   │   ├── page_handler.go
-│   │   ├── router.go
-│   │   └── view_data.go
-│   ├── model/
-│   │   └── snippet.go
-│   ├── repository/
-│   │   ├── errors.go
-│   │   └── snippet_repository.go
-│   └── service/
-│       └── snippet_service.go
-├── migrations/
-│   └── 001_create_snippets.sql
+│   ├── config/               # 配置
+│   ├── handler/              # 页面与 API 路由处理
+│   ├── model/                # 数据模型
+│   ├── repository/           # 数据访问层
+│   └── service/              # 业务层
+├── migrations/               # 数据库初始化 SQL
 ├── web/
-│   ├── static/
-│   │   ├── css/
-│   │   │   └── app.css
-│   │   └── js/
-│   │       ├── snippet-detail.js
-│   │       └── snippet-form.js
-│   └── templates/
-│       ├── error.html
-│       ├── index.html
-│       ├── layout.html
-│       ├── snippet_detail.html
-│       └── snippet_form.html
-├── .dockerignore
-├── DEVLOG.md
+│   ├── static/               # CSS / JS 静态资源
+│   └── templates/            # HTML 模板
+├── deploy/caddy/             # Caddy 反向代理配置
+├── scripts/                  # 部署脚本
 ├── Dockerfile
 ├── docker-compose.yml
-├── go.mod
 └── README.md
 ```
 
-## Data model
+## 数据结构
 
-The app stores a single `snippets` table:
+项目当前只有一张 `snippets` 表，核心字段如下：
 
-| Column | Type | Notes |
+| 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `id` | `TEXT` | UUID string primary key |
-| `title` | `TEXT` | Required |
-| `description` | `TEXT` | Optional, stored as empty string when omitted |
-| `language` | `TEXT` | Required, constrained in service layer |
-| `content` | `TEXT` | Required code body |
-| `is_public` | `INTEGER` | `1` for public, `0` for private/unlisted |
-| `created_at` | `TEXT` | RFC3339 timestamp |
-| `updated_at` | `TEXT` | RFC3339 timestamp |
+| `id` | `TEXT` | UUID 主键 |
+| `title` | `TEXT` | 标题，必填 |
+| `description` | `TEXT` | 描述，可空 |
+| `language` | `TEXT` | 代码语言，必填 |
+| `content` | `TEXT` | 代码内容，必填 |
+| `is_public` | `INTEGER` | `1` 表示公开，`0` 表示 unlisted |
+| `created_at` | `TEXT` | 创建时间，RFC3339 |
+| `updated_at` | `TEXT` | 更新时间，RFC3339 |
 
-Notes:
+## 路由说明
 
-- Private snippets are **unlisted**, not access-controlled. Direct links still work.
-- The repository layer is interface-based, so replacing SQLite with PostgreSQL later mainly affects repository implementation and SQL placeholders.
+### 页面路由
 
-## Routes
+- `GET /`：首页与公开 snippet 列表
+- `GET /snippets/new`：新建页面
+- `GET /snippets/:id`：详情页
+- `GET /snippets/:id/raw`：原始文本页
+- `GET /snippets/:id/edit`：编辑页
 
-### Page routes
+### API 路由
 
-- `GET /` — public snippet list and search
-- `GET /snippets/new` — create page
-- `GET /snippets/:id` — detail page
-- `GET /snippets/:id/raw` — raw text view for code content
-- `GET /snippets/:id/edit` — edit page
+- `GET /api/snippets`：获取公开 snippet 列表
+- `GET /api/snippets/:id`：获取单条 snippet
+- `POST /api/snippets`：创建 snippet
+- `PUT /api/snippets/:id`：更新 snippet
+- `DELETE /api/snippets/:id`：删除 snippet
 
-### API routes
+## 本地开发
 
-- `GET /api/snippets` — list public snippets
-- `GET /api/snippets/:id` — get a snippet by id
-- `POST /api/snippets` — create a snippet
-- `PUT /api/snippets/:id` — update a snippet
-- `DELETE /api/snippets/:id` — delete a snippet
+### 依赖
 
-## Local development
+- `Go 1.25+`
 
-### Prerequisites
-
-- Go 1.25+
-
-### Run the app
+### 启动方式
 
 ```bash
 go mod tidy
 go run ./cmd/server
 ```
 
-The service starts on [http://localhost:8080](http://localhost:8080).
+启动后可访问 [http://localhost:8080](http://localhost:8080)。
 
-On first run it creates the SQLite database automatically at `data/snippets.db`.
+首次运行时，程序会自动在 `data/snippets.db` 创建 SQLite 数据库。
 
-## Docker
-
-### Build and run with Docker Compose
+## Docker 运行
 
 ```bash
 docker compose up --build
 ```
 
-The app will be available at [http://localhost:8080](http://localhost:8080).
+启动后可访问 [http://localhost:8080](http://localhost:8080)。
 
-The SQLite database is persisted to `./data`.
+当前仓库内的 [`docker-compose.yml`](./docker-compose.yml) 适合单机部署，默认行为如下：
 
-The bundled `docker-compose.yml` is intended for a simple single-node deployment:
+- 应用监听宿主机 `127.0.0.1:8080`
+- 容器内启用 `GIN_MODE=release`
+- SQLite 数据挂载到 `./data`
+- 健康检查访问 `http://127.0.0.1:8080/healthz`
 
-- the app listens on `127.0.0.1:8080` on the server host
-- `GIN_MODE=release` is enabled in the container
-- the SQLite database is mounted from `./data`
-- Docker health checks probe `http://127.0.0.1:8080/`
+当前还提供了一个轻量健康检查接口：
 
-## Single-node deployment
+- `GET /healthz`：仅用于存活探测，返回 `200 OK`
 
-For a small public deployment on one server, the simplest setup is:
+## 单机部署建议
 
-1. Clone the repository onto the server
-2. Start the app with `docker compose up -d --build`
-3. Put a reverse proxy in front of `127.0.0.1:8080`
-4. Keep `./data/snippets.db` backed up
+如果你要把它部署到一台公网服务器，推荐按下面的方式做：
 
-### Reverse proxy recommendation
+1. 应用本身只监听 `127.0.0.1:8080`
+2. 用 `Caddy` 反代对外提供 `80/443`
+3. 定期备份 `data/snippets.db`
 
-For this project, `Caddy` is the recommended reverse proxy over `Nginx`.
+推荐 `Caddy` 的原因很简单：
 
-Why:
+- 配置更少，适合单服务项目
+- 域名解析正确时可以自动申请和续签 HTTPS 证书
+- 比较适合当前这种单节点、单应用的部署方式
 
-- `Caddy` can automatically provision and renew HTTPS certificates when your domain points to the server
-- the config for a single upstream app is very small
-- it reduces deployment steps for a one-service server
+## 仓库内的部署文件
 
-`Nginx` is still a good choice if you already run an `Nginx`-based stack or need more custom gateway behavior, but `Caddy` is the easier default here.
+仓库已经包含当前部署所需的关键文件：
 
-The repository also includes the current production-style Caddy deployment files:
+- [`deploy/caddy/Caddyfile`](./deploy/caddy/Caddyfile)
+- [`deploy/caddy/docker-compose.yml`](./deploy/caddy/docker-compose.yml)
+- [`scripts/deploy_hostdare.sh`](./scripts/deploy_hostdare.sh)
 
-- `deploy/caddy/Caddyfile`
-- `deploy/caddy/docker-compose.yml`
-- `scripts/deploy_hostdare.sh`
+其中 [`scripts/deploy_hostdare.sh`](./scripts/deploy_hostdare.sh) 是当前 `hostdare` 服务器的一键重部署脚本。
 
-### Example Caddyfile
-
-Replace `snippets.example.com` with your real domain:
-
-```caddyfile
-snippets.example.com {
-	reverse_proxy 127.0.0.1:8080
-}
-```
-
-### Example server flow
-
-```bash
-git clone https://github.com/xyzizz/gistlike.git
-cd gistlike
-docker compose up -d --build
-```
-
-After that:
-
-- point your DNS record to the server IP
-- install and start `Caddy`
-- place the `Caddyfile` above in `/etc/caddy/Caddyfile`
-- ensure ports `80` and `443` are open
-
-### One-command redeploy
-
-The repository includes a deployment helper for the current `hostdare` server:
+## 一键重部署
 
 ```bash
 ./scripts/deploy_hostdare.sh
 ```
 
-What it does:
+这个脚本会执行以下操作：
 
-- syncs the local repository to `/home/gistlike` over `ssh`
-- preserves the server-side `data/` directory
-- removes old deployment directories created during setup
-- rebuilds and restarts the app container
-- starts the Caddy reverse proxy from `deploy/caddy/`
+- 通过 `ssh` 和 `rsync` 把本地仓库同步到服务器 `/home/gistlike`
+- 保留服务器上的 `data/` 数据目录
+- 清理之前部署过程中遗留的旧目录
+- 重新构建并启动应用容器
+- 启动仓库内的 Caddy 容器配置
 
-Requirements:
+使用前提：
 
-- an `ssh` host alias named `hostdare`
-- `rsync` available locally and on the server
+- 本机已经配置 `ssh hostdare`
+- 本机安装了 `ssh` 和 `rsync`
+- 服务器可正常使用 Docker 与 Docker Compose
 
-### Operational notes
+## Cloudflare + Caddy 常见问题
 
-- This app is designed for one node and one SQLite database file
-- SQLite is a good fit for a small single-server deployment, but not for multi-node horizontal scaling
-- Private snippets are unlisted, not authenticated; do not treat this app as a secure private paste service without adding auth first
-
-## Cloudflare + Caddy 排错（中文）
-
-如果站点前面使用 Cloudflare 代理，源站使用 Caddy 自动处理 HTTPS，最常见的问题有两类：
+如果域名走 Cloudflare 代理，源站由 Caddy 提供 HTTPS，最常见的问题有两类。
 
 ### 1. 浏览器报 `DNS_PROBE_FINISHED_NXDOMAIN`
 
-这通常不是源站程序故障，而是 DNS 传播或本地 DNS 缓存未刷新。
+这通常不是程序本身出错，而是 DNS 传播或本地 DNS 缓存还没刷新。
 
 判断思路：
 
-- 如果权威 DNS 或 `1.1.1.1` 已经能解析域名，但本机或手机仍然报 `NXDOMAIN`
-- 说明问题更可能在本地网络使用的递归 DNS 缓存，而不是服务器本身
+- 如果 Cloudflare 权威 DNS 或 `1.1.1.1` 已经能解析
+- 但你的电脑或手机仍然提示 `NXDOMAIN`
+- 那更可能是本地网络正在使用旧缓存
 
-这类情况下：
+建议处理方式：
 
-- 先等待几分钟到几十分钟
-- 可以切换网络，或临时改用 `1.1.1.1`
-- 不要频繁删除再重建 DNS 记录，否则会拉长传播时间
+- 等待几分钟到几十分钟
+- 切换网络后重试
+- 临时改用 `1.1.1.1`
+- 不要频繁删除并重建 DNS 记录
 
 ### 2. 浏览器报 “redirected you too many times”
 
-这通常不是 DNS 死循环，而是 Cloudflare SSL 模式和源站 HTTPS 策略冲突。
+这通常不是 DNS 死循环，而是 Cloudflare 的 SSL 模式与 Caddy 的强制 HTTPS 策略冲突。
 
-如果 Cloudflare 使用 `Flexible`，它会用 `HTTP` 回源到服务器；而 Caddy 默认会把 `HTTP` 重定向到 `HTTPS`。这样就会形成下面的循环：
+典型原因：
 
-1. 浏览器访问 `https://your-domain`
-2. Cloudflare 用 `HTTP` 请求源站
-3. Caddy 返回 `308`，要求跳转到 `https://your-domain`
-4. Cloudflare 再把这个跳转返回给浏览器
-5. 浏览器继续访问 `https://your-domain`
-6. 重复以上过程，最终出现重定向过多
+- Cloudflare 使用了 `Flexible`
+- Cloudflare 回源时走 `HTTP`
+- Caddy 又把 `HTTP` 重定向到 `HTTPS`
+- 最终形成无限跳转
 
 正确做法：
 
-- 在 Cloudflare `SSL/TLS` 中把模式设置为 `Full (strict)`
+- 在 Cloudflare 后台把 `SSL/TLS` 模式改为 `Full (strict)`
 - 不要使用 `Flexible`
 
-推荐的 Cloudflare 配置：
+推荐配置：
 
-- DNS 记录可以保持橙云代理
-- SSL/TLS 模式使用 `Full (strict)`
+- DNS 记录保持橙云代理
+- `SSL/TLS` 使用 `Full (strict)`
 - 源站继续由 Caddy 提供证书和反向代理
 
 一句话总结：
 
-- `NXDOMAIN` 更像 DNS 传播问题
-- `Too many redirects` 更像 Cloudflare `Flexible` 和 Caddy 强制 HTTPS 之间的冲突
-
-## How to use
-
-1. Open the home page and click **New snippet**
-2. Fill in title, description, language, content, and visibility
-3. Submit the form to create the snippet
-4. Use the detail page to open the `Raw` view, edit, or delete it
-5. Use the search box on the home page to search public snippets
-
-## Future extensions
-
-- Add authentication and ownership for real private access control
-- Add version history per snippet
-- Integrate syntax highlighting libraries
-- Add better search and pagination
-- Replace SQLite repository with a PostgreSQL repository
-- Add permissions, rate limiting, and moderation workflows
+- `NXDOMAIN` 更像 DNS 传播或本地缓存问题
+- `Too many redirects` 更像 Cloudflare `Flexible` 与 Caddy 强制 HTTPS 冲突
