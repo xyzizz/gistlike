@@ -133,6 +133,65 @@ The app will be available at [http://localhost:8080](http://localhost:8080).
 
 The SQLite database is persisted to `./data`.
 
+The bundled `docker-compose.yml` is intended for a simple single-node deployment:
+
+- the app listens on `0.0.0.0:8080`
+- `GIN_MODE=release` is enabled in the container
+- the SQLite database is mounted from `./data`
+- Docker health checks probe `http://127.0.0.1:8080/`
+
+## Single-node deployment
+
+For a small public deployment on one server, the simplest setup is:
+
+1. Clone the repository onto the server
+2. Start the app with `docker compose up -d --build`
+3. Put a reverse proxy in front of `127.0.0.1:8080`
+4. Keep `./data/snippets.db` backed up
+
+### Reverse proxy recommendation
+
+For this project, `Caddy` is the recommended reverse proxy over `Nginx`.
+
+Why:
+
+- `Caddy` can automatically provision and renew HTTPS certificates when your domain points to the server
+- the config for a single upstream app is very small
+- it reduces deployment steps for a one-service server
+
+`Nginx` is still a good choice if you already run an `Nginx`-based stack or need more custom gateway behavior, but `Caddy` is the easier default here.
+
+### Example Caddyfile
+
+Replace `snippets.example.com` with your real domain:
+
+```caddyfile
+snippets.example.com {
+	reverse_proxy 127.0.0.1:8080
+}
+```
+
+### Example server flow
+
+```bash
+git clone https://github.com/xyzizz/gistlike.git
+cd gistlike
+docker compose up -d --build
+```
+
+After that:
+
+- point your DNS record to the server IP
+- install and start `Caddy`
+- place the `Caddyfile` above in `/etc/caddy/Caddyfile`
+- ensure ports `80` and `443` are open
+
+### Operational notes
+
+- This app is designed for one node and one SQLite database file
+- SQLite is a good fit for a small single-server deployment, but not for multi-node horizontal scaling
+- Private snippets are unlisted, not authenticated; do not treat this app as a secure private paste service without adding auth first
+
 ## How to use
 
 1. Open the home page and click **New snippet**
