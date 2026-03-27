@@ -161,6 +161,11 @@ Why:
 
 `Nginx` is still a good choice if you already run an `Nginx`-based stack or need more custom gateway behavior, but `Caddy` is the easier default here.
 
+The repository also includes the current production-style Caddy deployment files:
+
+- `deploy/caddy/Caddyfile`
+- `deploy/caddy/docker-compose.yml`
+
 ### Example Caddyfile
 
 Replace `snippets.example.com` with your real domain:
@@ -191,6 +196,54 @@ After that:
 - This app is designed for one node and one SQLite database file
 - SQLite is a good fit for a small single-server deployment, but not for multi-node horizontal scaling
 - Private snippets are unlisted, not authenticated; do not treat this app as a secure private paste service without adding auth first
+
+## Cloudflare + Caddy 排错（中文）
+
+如果站点前面使用 Cloudflare 代理，源站使用 Caddy 自动处理 HTTPS，最常见的问题有两类：
+
+### 1. 浏览器报 `DNS_PROBE_FINISHED_NXDOMAIN`
+
+这通常不是源站程序故障，而是 DNS 传播或本地 DNS 缓存未刷新。
+
+判断思路：
+
+- 如果权威 DNS 或 `1.1.1.1` 已经能解析域名，但本机或手机仍然报 `NXDOMAIN`
+- 说明问题更可能在本地网络使用的递归 DNS 缓存，而不是服务器本身
+
+这类情况下：
+
+- 先等待几分钟到几十分钟
+- 可以切换网络，或临时改用 `1.1.1.1`
+- 不要频繁删除再重建 DNS 记录，否则会拉长传播时间
+
+### 2. 浏览器报 “redirected you too many times”
+
+这通常不是 DNS 死循环，而是 Cloudflare SSL 模式和源站 HTTPS 策略冲突。
+
+如果 Cloudflare 使用 `Flexible`，它会用 `HTTP` 回源到服务器；而 Caddy 默认会把 `HTTP` 重定向到 `HTTPS`。这样就会形成下面的循环：
+
+1. 浏览器访问 `https://your-domain`
+2. Cloudflare 用 `HTTP` 请求源站
+3. Caddy 返回 `308`，要求跳转到 `https://your-domain`
+4. Cloudflare 再把这个跳转返回给浏览器
+5. 浏览器继续访问 `https://your-domain`
+6. 重复以上过程，最终出现重定向过多
+
+正确做法：
+
+- 在 Cloudflare `SSL/TLS` 中把模式设置为 `Full (strict)`
+- 不要使用 `Flexible`
+
+推荐的 Cloudflare 配置：
+
+- DNS 记录可以保持橙云代理
+- SSL/TLS 模式使用 `Full (strict)`
+- 源站继续由 Caddy 提供证书和反向代理
+
+一句话总结：
+
+- `NXDOMAIN` 更像 DNS 传播问题
+- `Too many redirects` 更像 Cloudflare `Flexible` 和 Caddy 强制 HTTPS 之间的冲突
 
 ## How to use
 
