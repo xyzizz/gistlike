@@ -135,7 +135,7 @@ The SQLite database is persisted to `./data`.
 
 The bundled `docker-compose.yml` is intended for a simple single-node deployment:
 
-- the app listens on `0.0.0.0:8080`
+- the app listens on `127.0.0.1:8080` on the server host
 - `GIN_MODE=release` is enabled in the container
 - the SQLite database is mounted from `./data`
 - Docker health checks probe `http://127.0.0.1:8080/`
@@ -165,6 +165,7 @@ The repository also includes the current production-style Caddy deployment files
 
 - `deploy/caddy/Caddyfile`
 - `deploy/caddy/docker-compose.yml`
+- `scripts/deploy_hostdare.sh`
 
 ### Example Caddyfile
 
@@ -190,6 +191,27 @@ After that:
 - install and start `Caddy`
 - place the `Caddyfile` above in `/etc/caddy/Caddyfile`
 - ensure ports `80` and `443` are open
+
+### One-command redeploy
+
+The repository includes a deployment helper for the current `hostdare` server:
+
+```bash
+./scripts/deploy_hostdare.sh
+```
+
+What it does:
+
+- syncs the local repository to `/home/gistlike` over `ssh`
+- preserves the server-side `data/` directory
+- removes old deployment directories created during setup
+- rebuilds and restarts the app container
+- starts the Caddy reverse proxy from `deploy/caddy/`
+
+Requirements:
+
+- an `ssh` host alias named `hostdare`
+- `rsync` available locally and on the server
 
 ### Operational notes
 
